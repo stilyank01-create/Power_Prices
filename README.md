@@ -172,7 +172,6 @@ The distributed deployment model — large numbers of household Powerwall units 
 - Battery degradation modelled linearly (100%→70%); real-world performance varies with cycling patterns and temperature.
 - The 20% fleet-sizing assumption and €1,000 gateway cost are fixed; sensitivity analysis on these parameters is recommended.
 - Regulatory factors — grid tariffs, feed-in rules, aggregation frameworks — are not modelled and may significantly affect actual returns.
-- Slovenia appears in the ROI model but was absent from Module 2 (ENTSO-E capacity API); its results should be verified against an independent data source.
 
 ---
 
