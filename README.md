@@ -126,9 +126,9 @@ Investment model: Tesla Powerwall 3 (13.5 kWh energy / 4.6 kW discharge). Fleet 
 **What is Simple ROI?** ROI = 10-year gross margin ÷ total investment. A value of 19% means that for every €100 invested in the Powerwall fleet, €19 in gross arbitrage revenue is earned over 10 years — before operating costs, taxes, or financing. It is the total undiscounted payback ratio over the full 10-year horizon, not an annualised return.
 
 - Bulgaria (19%) and Hungary (18%) deliver the highest ROI, driven by price spreads above €89/MWh.
-- Greece (17%) and Slovenia (13%) follow, with Czech Republic at 11% and Austria at 9%.
+- Greece (17%), the Czech Republic (11%) and Austria  (9%).
 - Spain, France, and Belgium return 8% — positive but marginal, requiring scale or regulatory support to be compelling.
-- Combined 10-year gross margin across all nine countries: ~€1.99 billion against ~€21.65 billion total investment.
+
 
 **▸ Output Data**
 
@@ -141,7 +141,6 @@ Investment model: Tesla Powerwall 3 (13.5 kWh energy / 4.6 kW discharge). Fleet 
 | France | 17,316 | 2,944 | 752,850 | 38.47 | 41,335,777 | 5.421 | 413,357,774 | 8% | 8% |
 | Greece | 1,554 | 264 | 67,570 | 83.77 | 8,078,350 | 0.487 | 80,783,500 | 17% | 17% |
 | Hungary | 3,407 | 579 | 148,124 | 89.40 | 18,898,061 | 1.066 | 188,980,608 | 18% | 18% |
-| Slovenia | 509 | 87 | 22,137 | 65.04 | 2,054,918 | 0.159 | 20,549,182 | 13% | 13% |
 | Spain | 28,602 | 4,862 | 1,243,583 | 42.20 | 74,895,556 | 8.954 | 748,955,556 | 8% | 8% |
 
 ---
@@ -165,7 +164,6 @@ The distributed deployment model — large numbers of household Powerwall units 
 - **Bulgaria: 19% ROI** — €93.76/MWh spread, €61.6M 10-year margin — strongest case per unit.
 - **Hungary: 18% ROI** — €89.40/MWh spread, €189.0M 10-year margin — largest absolute return among top performers.
 - **Greece: 17% ROI** — €83.77/MWh spread — strong solar infrastructure (27.8% share) supports continued growth.
-- **Slovenia: 13% ROI** — €65.04/MWh spread — smaller market but attractive unit economics.
 
 ### Limitations & Outlook
 
