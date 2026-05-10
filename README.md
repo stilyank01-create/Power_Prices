@@ -156,7 +156,7 @@ Price spreads range from €20.72/MWh (FR) to €55.74/MWh (HU). Countries with 
 
 ### Investment Case
 
-The Simple ROI metric equals 10-year gross margin divided by total investment — the total undiscounted return over the full 10-year horizon, not an annualised figure. A 19% ROI means €19 returned per €100 invested over 10 years. The model returns positive results across all nine countries (8%–19%). Bulgaria and Hungary are the most attractive markets, combining the widest price spreads with relatively modest fleet sizes and investment levels. Greece and Slovenia also offer above-average returns. The combined 10-year gross margin across all nine countries exceeds €1.99 billion against a total investment of approximately €21.65 billion.
+The Simple ROI metric equals 10-year gross margin divided by total investment — the total undiscounted return over the full 10-year horizon, not an annualised figure. A 19% ROI means €19 returned per €100 invested over 10 years. The model returns positive results across all nine countries (8%–19%). Bulgaria and Hungary are the most attractive markets, combining the widest price spreads with relatively modest fleet sizes and investment levels. Greece also offers above-average returns. The combined 10-year gross margin across all nine countries exceeds €1.99 billion against a total investment of approximately €21.65 billion.
 
 The distributed deployment model — large numbers of household Powerwall units rather than centralised grid-scale storage — provides a dual benefit: capturing solar arbitrage revenue while reducing peak load on transmission and distribution networks, potentially deferring costly grid capacity extensions.
 
