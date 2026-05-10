@@ -1,4 +1,4 @@
-# EU Battery Storage Arbitrage
+# Macroeconomic Analysis — EU Battery Storage Arbitrage
 ## Analytical Pipeline — README
 *Eurostat · ENTSO-E · Day-Ahead Prices · Solar Merit-Order · Powerwall ROI*
 
@@ -6,11 +6,17 @@
 
 ## Abstract
 
-This project is a five-module analytical pipeline investigating the economic viability of distributed small-scale battery storage — specifically Tesla Powerwall 3 units — deployed across selected EU countries. The pipeline integrates three independent data sources: Eurostat installed capacity statistics, ENTSO-E real-time generation and day-ahead price APIs, and empirical solar generation profiles.
+This project is a five-module macroeconomic analysis and analytical pipeline investigating the economic viability of distributed small-scale battery storage — specifically Tesla Powerwall 3 or similar units — deployed across selected EU countries. The pipeline integrates three independent data sources: Eurostat installed capacity statistics, ENTSO-E real-time generation and day-ahead price APIs, and empirical solar generation profiles.
 
-The analysis maps installed capacity across technologies and countries using Eurostat data (Module 1). From Module 2 onwards, the pipeline switches exclusively to ENTSO-E data, which provides more detailed and precise real-time energy statistics: solar penetration is quantified for eight EU countries (Module 2), day-ahead price dynamics during high-solar hours are characterised (Module 3), the solar merit-order effect is formally tested (Module 4), and a 10-year Powerwall ROI sized to capture solar arbitrage is quantified (Module 5).
+The goal of the project is to prove that solar production systematically leads to lower price levels during hours of high solar generation, and that small-scale batteries — if deployed at scale — can economically redistribute that energy to hours of higher demand and higher prices. Such an investment model is hypothesised to be viable on both a micro level (individual unit returns) and a macro level (grid-wide energy rebalancing), delivering sufficient returns to investors while simultaneously improving the temporal distribution of renewable energy supply.
 
-The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed with statistical significance (p = 0.0000) across all eight countries analysed.
+The analysis maps installed capacity across technologies and countries using Eurostat data (Module 1). From Module 2 onwards, the pipeline switches exclusively to ENTSO-E data, which provides more detailed and precise real-time energy statistics: solar penetration is quantified for eight EU countries (Module 2), day-ahead price dynamics during high-solar hours are characterised (Module 3), the solar merit-order effect is formally tested (Module 4), and a 10-year Powerwall ROI (Return on Investment) sized to capture solar arbitrage is quantified (Module 5).
+
+Power generation volumes and prices are derived from ENTSO-E day-ahead 15-minute interval prices, resulting in datasets of up to 8,760 × 4 = 35,040 observations per country per year. This granularity is essential for accurately characterising intraday price dynamics and identifying exploitable arbitrage windows.
+
+The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed across all eight countries analysed. Statistical significance is established via a Mann-Whitney U test comparing mean prices during strong solar hours against all other hours, returning p = 0.0000 in every country, meaning the probability of observing these price differences by chance is less than 0.01%. This is further supported by a statistically significant negative Pearson correlation between solar generation (MW) and price (EUR/MWh) in all eight countries, confirming that higher solar output consistently coincides with lower prices.
+
+The strongest price suppression effect is observed in Hungary (−55.74 EUR/MWh gap) and Bulgaria (−51.62 EUR/MWh gap), while the strongest solar-price correlation is found in Austria (−0.524) and Belgium (−0.522).
 
 ---
 
@@ -99,18 +105,16 @@ Statistical test: one-sided mean comparison and Pearson correlation (threshold |
 
 **▸ Output Data**
 
-| Country | Strong Solar Mean (€/MWh) | Other Hours Mean (€/MWh) | Correlation (r) | P-value | Merit-Order Effect |
-|---------|--------------------------|--------------------------|-----------------|---------|-------------------|
-| AT | 57.29 | 85.25 | -0.524 | 0.0000 | ✓ Confirmed |
-| BE | 45.06 | 74.84 | -0.522 | 0.0000 | ✓ Confirmed |
-| BG | 71.92 | 123.53 | — | 0.0000 | ✓ Confirmed |
-| CZ | 54.48 | 92.88 | — | 0.0000 | ✓ Confirmed |
-| ES | 42.49 | 73.49 | — | 0.0000 | ✓ Confirmed |
-| FR | 32.94 | 53.66 | — | 0.0000 | ✓ Confirmed |
-| GR | 74.81 | 123.60 | — | 0.0000 | ✓ Confirmed |
-| HU | 67.20 | 122.94 | — | 0.0000 | ✓ Confirmed |
-
-> *Correlation values for BG, CZ, ES, FR, GR, HU not shown in truncated output but p-values confirm significance at any conventional threshold.*
+| Country | Solar hours mean (EUR/MWh) | Other hours mean (EUR/MWh) | Price gap (EUR/MWh) | Correlation | p-value |
+|---------|---------------------------|---------------------------|---------------------|-------------|---------|
+| Austria | 57.29 | 85.25 | 27.96 | -0.524 | 0.0000 |
+| Belgium | 45.06 | 74.84 | 29.78 | -0.522 | 0.0000 |
+| Bulgaria | 71.92 | 123.54 | 51.62 | -0.317 | 0.0000 |
+| Czechia | 54.48 | 92.89 | 38.41 | -0.495 | 0.0000 |
+| Spain | 42.49 | 73.49 | 31.00 | -0.428 | 0.0000 |
+| France | 32.94 | 53.65 | 20.71 | -0.352 | 0.0000 |
+| Greece | 74.81 | 123.61 | 48.80 | -0.364 | 0.0000 |
+| Hungary | 67.20 | 122.94 | 55.74 | -0.354 | 0.0000 |
 
 ---
 
