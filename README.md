@@ -26,25 +26,143 @@ The strongest price suppression effect is observed in Hungary (−55.74 EUR/MWh 
 ### Module 1 — Installed Capacity per Technology per Country (Eurostat)
 `01_Eurostat_Installed_Capacity_Per_Technology_Per_Country.ipynb`
 
-Data source: Eurostat installed generation capacity dataset. Pivots raw data into a Country × Technology matrix (81 columns), filters to 15 non-overlapping technologies, and sorts countries alphabetically.
+Data source: Eurostat installed generation capacity dataset. Pivots raw data into a Country × Technology matrix, filters main non-overlapping technologies, and sorts countries alphabetically.
 
 - Technologies retained: solar, wind onshore/offshore, hydro variants, nuclear, coal, lignite, oil, gas, biomass, geothermal, tidal, and waste.
 - All-zero columns dropped to reduce noise; aggregates and duplicates excluded.
 
 **▸ Output Data**
 
-| Country | Coal (MW) | Gas (MW) | Wind On. (MW) | Wind Off. (MW) | Biomass (MW) | Tidal (MW) | Total (MW) |
-|---------|-----------|----------|---------------|----------------|--------------|------------|------------|
-| Austria | 15,186 | 9,547 | 4,528 | 0 | 0 | 8 | 33,008 |
-| Belgium | 1,431 | 124 | 5,990 | 3,928 | 463 | 259 | 28,702 |
-| Bulgaria | 3,418 | 2,405 | 5,103 | 2,006 | 29 | 0 | 16,161 |
-| Czechia | 2,290 | 1,118 | 10,401 | 4,290 | 10 | 34 | 23,022 |
-| France | 26,024 | 18,922 | 16,840 | 61,400 | 0 | 1,089 | 134,217 |
-| Greece | 3,481 | 2,782 | 10,408 | 0 | 0 | 0 | 28,716 |
-| Hungary | 61 | 61 | 4,573 | 2,027 | 207 | 60 | 14,676 |
-| Spain | 20,140 | 13,738 | 32,488 | 7,117 | 1,459 | 0 | 135,952 |
 
-> *Selected key technologies shown. Full matrix spans 81 columns. France (134,217 MW) and Spain (135,952 MW) are the two largest systems by total installed capacity.*
+Fetching 2024...
+  [OK] France: 11 technology records
+  [OK] Spain: 11 technology records
+  [OK] Austria: 7 technology records
+  [OK] Bulgaria: 8 technology records
+  [OK] Belgium: 9 technology records
+  [OK] Greece: 6 technology records
+  [OK] Czechia: 8 technology records
+  [OK] Hungary: 8 technology records
+
+============================================================
+France
+============================================================
+TOTAL: 158,458 MW
+
+BREAKDOWN:
+  Nuclear fuels and other fuels n.e.c.              61,400 MW  ( 38.7%)
+  Solar photovoltaic                                25,083 MW  ( 15.8%)
+  Wind on shore                                     22,747 MW  ( 14.4%)
+  Combustible fuels                                 20,411 MW  ( 12.9%)
+  Pure hydro power                                  18,922 MW  ( 11.9%)
+  Mixed hydro power                                  5,375 MW  (  3.4%)
+  Pumped hydro power                                 1,728 MW  (  1.1%)
+  Wind off shore                                     1,494 MW  (  0.9%)
+  Other fuels n.e.c.                                 1,089 MW  (  0.7%)
+  Tide, wave, ocean                                    210 MW  (  0.1%)
+
+============================================================
+Spain
+============================================================
+TOTAL: 135,952 MW
+
+BREAKDOWN:
+  Combustible fuels                                 38,325 MW  ( 28.2%)
+  Solar photovoltaic                                35,823 MW  ( 26.3%)
+  Wind on shore                                     32,179 MW  ( 23.7%)
+  Pure hydro power                                  13,738 MW  ( 10.1%)
+  Nuclear fuels and other fuels n.e.c.               7,117 MW  (  5.2%)
+  Pumped hydro power                                 3,331 MW  (  2.5%)
+  Mixed hydro power                                  3,071 MW  (  2.3%)
+  Solar thermal                                      2,304 MW  (  1.7%)
+  Other fuels n.e.c.                                    54 MW  (  0.0%)
+  Wind off shore                                         5 MW  (  0.0%)
+  Tide, wave, ocean                                      5 MW  (  0.0%)
+
+============================================================
+Austria
+============================================================
+TOTAL: 33,008 MW
+
+BREAKDOWN:
+  Pure hydro power                                   9,547 MW  ( 28.9%)
+  Solar photovoltaic                                 8,143 MW  ( 24.7%)
+  Mixed hydro power                                  5,639 MW  ( 17.1%)
+  Combustible fuels                                  5,578 MW  ( 16.9%)
+  Wind on shore                                      4,092 MW  ( 12.4%)
+  Other fuels n.e.c.                                     8 MW  (  0.0%)
+  Geothermal                                             0 MW  (  0.0%)
+
+============================================================
+Bulgaria
+============================================================
+TOTAL: 16,161 MW
+
+BREAKDOWN:
+  Combustible fuels                                  5,471 MW  ( 33.9%)
+  Solar photovoltaic                                 4,560 MW  ( 28.2%)
+  Pure hydro power                                   2,405 MW  ( 14.9%)
+  Nuclear fuels and other fuels n.e.c.               2,006 MW  ( 12.4%)
+  Pumped hydro power                                   864 MW  (  5.3%)
+  Wind on shore                                        706 MW  (  4.4%)
+  Mixed hydro power                                    149 MW  (  0.9%)
+
+============================================================
+Belgium
+============================================================
+TOTAL: 28,702 MW
+
+BREAKDOWN:
+  Solar photovoltaic                                 9,642 MW  ( 33.6%)
+  Combustible fuels                                  7,797 MW  ( 27.2%)
+  Nuclear fuels and other fuels n.e.c.               3,928 MW  ( 13.7%)
+  Wind on shore                                      3,383 MW  ( 11.8%)
+  Wind off shore                                     2,262 MW  (  7.9%)
+  Pumped hydro power                                 1,307 MW  (  4.6%)
+  Other fuels n.e.c.                                   259 MW  (  0.9%)
+  Pure hydro power                                     124 MW  (  0.4%)
+
+============================================================
+Greece
+============================================================
+TOTAL: 28,716 MW
+
+BREAKDOWN:
+  Combustible fuels                                 11,041 MW  ( 38.5%)
+  Solar photovoltaic                                 8,827 MW  ( 30.7%)
+  Wind on shore                                      5,366 MW  ( 18.7%)
+  Pure hydro power                                   2,782 MW  (  9.7%)
+  Mixed hydro power                                    699 MW  (  2.4%)
+
+============================================================
+Czechia
+============================================================
+TOTAL: 23,022 MW
+
+BREAKDOWN:
+  Combustible fuels                                 12,054 MW  ( 52.4%)
+  Nuclear fuels and other fuels n.e.c.               4,290 MW  ( 18.6%)
+  Solar photovoltaic                                 3,984 MW  ( 17.3%)
+  Pumped hydro power                                 1,172 MW  (  5.1%)
+  Pure hydro power                                   1,118 MW  (  4.9%)
+  Wind on shore                                        363 MW  (  1.6%)
+  Other fuels n.e.c.                                    41 MW  (  0.2%)
+
+============================================================
+Hungary
+============================================================
+TOTAL: 14,676 MW
+
+BREAKDOWN:
+  Solar photovoltaic                                 7,166 MW  ( 48.8%)
+  Combustible fuels                                  4,985 MW  ( 34.0%)
+  Nuclear fuels and other fuels n.e.c.               2,027 MW  ( 13.8%)
+  Wind on shore                                        325 MW  (  2.2%)
+  Other fuels n.e.c.                                   109 MW  (  0.7%)
+  Pure hydro power                                      61 MW  (  0.4%)
+  Geothermal                                             3 MW  (  0.0%)
+
+> *Selected key technologies shown.
 
 ---
 
