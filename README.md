@@ -14,7 +14,7 @@ The analysis maps installed capacity across technologies and countries using Eur
 
 Power generation volumes and prices are derived from ENTSO-E day-ahead 15-minute interval data, resulting in datasets of up to 8,760 × 4 = 35,040 observations per country per year. This granularity is essential for accurately characterising intraday price dynamics and identifying exploitable arbitrage windows.
 
-The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed across all eight countries analysed (Modules 3 and 4, p = 0.0000 in every country). However, the **investment case is more nuanced**: at honest cost and ROI accounting, only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles.
+The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed across all eight countries analysed (Modules 3 and 4). A Pearson correlation between solar generation and day-ahead price, computed over April–October 2024 when solar has a meaningful effect, returns a statistically significant negative coefficient in every country (p = 0.0000). However, the **investment case is more nuanced**: at honest cost and ROI accounting over a full operating year, only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles.
 
 ---
 
@@ -189,7 +189,9 @@ Data source: ENTSO-E Transparency Platform API. From this module onwards, the pi
 ### Module 3 — Day-Ahead Price Analysis — Solar vs. Non-Solar Hours
 `03_ENTSO-E_Determine_Solar_Strong_Hours.ipynb`
 
-Strong solar hours identified per country (08:00–18:00 for most; CZ 08–17, HU 07–17, ES 09–20). No countries had missing or failed price data. The price spread between strong-solar and remaining hours quantifies the battery arbitrage margin.
+Strong solar hours identified per country (08:00–18:00 for most; CZ 08–17, HU 07–17, ES 09–20), classified by the hour-of-day average solar output exceeding 20% of the peak hour-of-day average over April–October 2024 (the season in which solar materially affects prices). Prices are also restricted to the same April–October window for the spread comparison. The price spread between strong-solar and remaining hours quantifies the merit-order effect during the solar season.
+
+**Note on scope.** This module measures the price gap *during the solar season*. Module 5's cycle-1 spread is computed over the full year and is therefore smaller (e.g. AT €27.96/MWh here vs. €43.04/MWh in Module 5's cycle-1 spread — different metrics, both correct). Module 3 answers "how strong is the merit-order effect when solar is active?"; Module 5 answers "what spread does a year-round arbitrage operator realize?"
 
 - Largest spreads: HU €55.74/MWh, BG €51.61/MWh, GR €48.79/MWh — strongest arbitrage signal.
 - Smallest spreads: FR €20.72/MWh, ES €31.00/MWh, AT €27.96/MWh — still commercially relevant at scale.
@@ -212,7 +214,7 @@ Strong solar hours identified per country (08:00–18:00 for most; CZ 08–17, H
 ### Module 4 — Hypothesis Test — Merit-Order Effect of Solar Generation
 `04_ENTSO-E_Solar_Strong_Hours_Negative_Price_Correlation.ipynb`
 
-Statistical test: one-sided mean comparison and Pearson correlation (threshold |r| > 0.2) between solar generation and day-ahead prices. AT and BE show strong correlations of −0.524 and −0.522 respectively. All countries return p = 0.0000.
+Statistical test: one-sided mean comparison and Pearson correlation between solar generation (MW) and day-ahead price (EUR/MWh), computed on hourly observations over April–October 2024. A correlation threshold of |r| > 0.2 is applied — conventionally a "weak" effect in social-science contexts, but a meaningful signal in noisy energy-market time series, where price is driven by many independent factors (demand, weather, fuel prices, imports, scarcity). AT and BE show strong correlations of −0.524 and −0.522 respectively. All countries return p = 0.0000.
 
 **What is the p-value?** The p-value measures the probability that the observed price difference between solar and non-solar hours occurred by random chance. A value of 0.0000 means this probability is vanishingly small (less than 0.01%), so the result is considered statistically conclusive.
 
