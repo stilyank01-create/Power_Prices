@@ -1,23 +1,20 @@
 # Macroeconomic Analysis — EU Battery Storage Arbitrage
 ## Analytical Pipeline — README
-*Eurostat · ENTSO-E · Day-Ahead Prices · Solar Merit-Order · Powerwall ROI*
+*Eurostat · ENTSO-E · Day-Ahead Prices · Solar Merit-Order · Two-Cycle Utility-Scale Arbitrage*
 
 ---
 
 ## Abstract
 
-This project is a five-module macroeconomic analysis and analytical pipeline investigating the economic viability of distributed small-scale battery storage — specifically Tesla Powerwall 3 or similar units — deployed across selected EU countries. The pipeline integrates three independent data sources: Eurostat installed capacity statistics, ENTSO-E real-time generation and day-ahead price APIs, and empirical solar generation profiles.
+This project is a five-module macroeconomic analysis and analytical pipeline investigating the economic viability of grid-scale battery storage deployed across selected EU countries. The pipeline integrates three independent data sources: Eurostat installed capacity statistics, ENTSO-E real-time generation and day-ahead price APIs, and empirical solar generation profiles.
 
-The goal of the project is to prove that solar production systematically leads to lower price levels during hours of high solar generation, and that small-scale batteries — if deployed at scale — can economically redistribute that energy to hours of higher demand and higher prices. Such an investment model is hypothesised to be viable on both a micro level (individual unit returns) and a macro level (grid-wide energy rebalancing), delivering sufficient returns to investors while simultaneously improving the temporal distribution of renewable energy supply.
+The goal of the project is to test whether solar production systematically depresses prices during midday hours, and whether batteries — deployed at national scale — can economically redistribute that energy to evening peak hours. The investment case is assessed at utility-scale lithium-ion storage costs (€300/kWh installed, 2024 mid-range), with two daily charge–discharge cycles to maximise revenue per unit of CapEx.
 
-The analysis maps installed capacity across technologies and countries using Eurostat data (Module 1). From Module 2 onwards, the pipeline switches exclusively to ENTSO-E data, which provides more detailed and precise real-time energy statistics: solar penetration is quantified for eight EU countries (Module 2), day-ahead price dynamics during high-solar hours are characterised (Module 3), the solar merit-order effect is formally tested (Module 4), and a 10-year Powerwall ROI (Return on Investment) sized to capture solar arbitrage is quantified (Module 5).
+The analysis maps installed capacity across technologies and countries using Eurostat data (Module 1). From Module 2 onwards, the pipeline switches exclusively to ENTSO-E data, which provides more detailed and precise real-time energy statistics: solar penetration is quantified for eight EU countries (Module 2), day-ahead price dynamics during high-solar hours are characterised (Module 3), the solar merit-order effect is formally tested (Module 4), and a 10-year ROI for two-cycle arbitrage at utility-scale storage costs is quantified (Module 5).
 
-Power generation volumes and prices are derived from ENTSO-E day-ahead 15-minute interval prices, resulting in datasets of up to 8,760 × 4 = 35,040 observations per country per year. This granularity is essential for accurately characterising intraday price dynamics and identifying exploitable arbitrage windows.
+Power generation volumes and prices are derived from ENTSO-E day-ahead 15-minute interval data, resulting in datasets of up to 8,760 × 4 = 35,040 observations per country per year. This granularity is essential for accurately characterising intraday price dynamics and identifying exploitable arbitrage windows.
 
-The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed across all eight countries analysed. Mean prices during strong solar hours are substantially lower than during  other hours in all eight countries. A Mann-Whitney U test confirms this  difference is statistically significant (p = 0.0000 in every country), 
-meaning the probability of observing these distributional differences by chance is less than 0.01%. This is further supported by a statistically significant negative Pearson correlation between solar generation (MW) and price (EUR/MWh) in all eight countries, confirming that higher solar output consistently coincides with lower prices.
-
-The strongest price suppression effect is observed in Hungary (−55.74 EUR/MWh gap) and Bulgaria (−51.62 EUR/MWh gap), while the strongest solar-price correlation is found in Austria (−0.524) and Belgium (−0.522).
+The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed across all eight countries analysed (Modules 3 and 4, p = 0.0000 in every country). However, the **investment case is more nuanced**: at honest cost and ROI accounting, only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles.
 
 ---
 
@@ -26,10 +23,10 @@ The strongest price suppression effect is observed in Hungary (−55.74 EUR/MWh 
 ### Module 1 — Installed Capacity per Technology per Country (Eurostat)
 `01_Eurostat_Installed_Capacity_Per_Technology_Per_Country.ipynb`
 
-Data source: Eurostat installed generation capacity dataset. Pivots raw data into a Country × Technology matrix, filters main non-overlapping technologies, and sorts countries alphabetically.
+Data source: Eurostat `nrg_inf_epc` dataset (installed electricity generation capacity by SIEC). The notebook queries each country once per year, decodes the JSON-stat response dynamically (reading `id` and `size` from each response so the parser stays correct under any query shape), and filters to leaf SIEC codes only — `TOTAL`, `RA100`, `RA300`, `RA420` are excluded to prevent double-counting parent + children. `CF` is kept as a single "Combustible fuels" line since `nrg_inf_epc` does not break coal/gas/oil out separately. For solar PV, `RA420AC` (alternating current) is preferred and falls back to `RA420DC` (direct-current nameplate) when AC is not reported.
 
-- Technologies retained: solar, wind onshore/offshore, hydro variants, nuclear, coal, lignite, oil, gas, biomass, geothermal, tidal, and waste.
-- All-zero columns dropped to reduce noise; aggregates and duplicates excluded.
+- Technologies retained: combustible fuels (coal + gas + oil aggregated), nuclear, pure hydro, mixed hydro, pumped hydro, geothermal, wind onshore, wind offshore, solar PV, solar thermal, and tide/wave/ocean.
+- Aggregates are excluded; AC and DC solar PV are not double-counted.
 
 **▸ Output Data**
 
@@ -237,30 +234,34 @@ Statistical test: one-sided mean comparison and Pearson correlation (threshold |
 
 ---
 
-### Module 5 — 10-Year ROI Model — Powerwall Fleet
+### Module 5 — 10-Year ROI Model — Two-Cycle Utility-Scale Arbitrage
 `05_ENTSO-E_Solar_Storage_Arbitrage_Return_Model.ipynb`
 
-Investment model: Tesla Powerwall 3 (13.5 kWh energy / 4.6 kW discharge). Fleet sized to cover 20% of mean peak-hour grid energy, constrained by whichever Powerwall limit binds first. 85% average utilisation over 10 years (linear degradation 100%→70%). Total investment = all units × €7,200 + one gateway (€1,000).
+**Model.** National storage fleets are sized to add `target_fraction` (50% by default) of mean grid energy on top of generation during the top-5 peak price hours each day. Storage is priced at **€300/kWh installed** (utility-scale Li-ion, 2024 mid-range including inverter, balance-of-system, and interconnection). The fleet runs **two daily cycles**:
 
-**What is Simple ROI?** ROI = 10-year gross margin ÷ total investment. A value of 19% means that for every €100 invested in the Powerwall fleet, €19 in gross arbitrage revenue is earned over 10 years — before operating costs, taxes, or financing. It is the total undiscounted payback ratio over the full 10-year horizon, not an annualised return.
+- **Cycle 1**: discharge during the top-5 evening peak hours; charge during strong-solar hours (April–October hour-of-day classification, threshold = 20% of the peak hour-of-day average solar output).
+- **Cycle 2**: discharge during the next-best 3 price hours of each day (dynamic per day); charge during the cheapest 3 non-strong hours of each day (typically overnight).
 
-- Bulgaria (19%) and Hungary (18%) deliver the highest ROI, driven by price spreads above €89/MWh.
-- Greece (17%), the Czech Republic (11%) and Austria  (9%).
-- Spain, France, and Belgium return 8% — positive but marginal, requiring scale or regulatory support to be compelling.
+Fleet sizing is bounded by cycle 1 (the larger daily volume). Cycle 2 reuses the same fleet at a different time of day. Daily delivered energy in each cycle is capped at the cycle's target. Utilisation degrades linearly from 100% in year 1 to 70% in year 10 (10-year time-average = 85%).
 
+**Solar feasibility check.** For each country, the model verifies whether the strong-solar window's total available solar generation is enough to fully charge the fleet for cycle 1. When `No`, the fleet would have to be charged from non-solar sources (typically wind, nuclear, or imports) at the prevailing midday price — the arbitrage still works economically (midday prices remain below evening peak), but it is no longer "solar arbitrage" in the strict sense.
+
+**What is Net ROI?** Net ROI = (10-year gross margin ÷ total investment) − 1. A value of +20% means that for every €100 invested, €120 in gross arbitrage revenue is earned over 10 years (a 20% net return over the full horizon, before operating costs, taxes, or financing). A value of −40% means only €60 is recovered (a 40% net loss).
 
 **▸ Output Data**
 
-| Country | Peak Energy (MWh) | Eff. Energy (MWh) | Units (#) | Spread (€/MWh) | Annual Margin (€) | Investment (B€) | 10yr Margin (€) | Fleet ROI | Unit ROI |
-|---------|-------------------|-------------------|-----------|----------------|-------------------|-----------------|-----------------|-----------|----------|
-| Austria | 8,498 | 1,445 | 369,460 | 46.63 | 24,588,073 | 2.660 | 245,880,733 | 9% | 9% |
-| Belgium | 2,007 | 341 | 87,245 | 42.43 | 5,282,846 | 0.628 | 52,828,457 | 8% | 8% |
-| Bulgaria | 1,058 | 180 | 46,014 | 93.76 | 6,157,283 | 0.331 | 61,572,827 | 19% | 19% |
-| Czech Rep. | 5,263 | 895 | 228,847 | 54.75 | 17,880,089 | 1.648 | 178,800,895 | 11% | 11% |
-| France | 17,316 | 2,944 | 752,850 | 38.47 | 41,335,777 | 5.421 | 413,357,774 | 8% | 8% |
-| Greece | 1,554 | 264 | 67,570 | 83.77 | 8,078,350 | 0.487 | 80,783,500 | 17% | 17% |
-| Hungary | 3,407 | 579 | 148,124 | 89.40 | 18,898,061 | 1.066 | 188,980,608 | 18% | 18% |
-| Spain | 28,602 | 4,862 | 1,243,583 | 42.20 | 74,895,556 | 8.954 | 748,955,556 | 8% | 8% |
+| Country | Cycle 1 Spread (€/MWh) | Cycle 2 Spread (€/MWh) | Solar Feasible | Storage (GWh) | Discharge (GW) | Annual Margin (B€) | Investment (B€) | 10y Margin (B€) | Net ROI (10y) |
+|---------|-----------------------:|-----------------------:|:--------------:|--------------:|---------------:|-------------------:|----------------:|----------------:|--------------:|
+| Hungary        | 89.40 | 46.10 | ☀ Yes | 8.52  | 1.70  | 0.309 | 2.555  | 3.093  | **+21%** |
+| Bulgaria       | 88.61 | 44.92 | ☀ Yes | 2.65  | 0.53  | 0.095 | 0.794  | 0.949  | **+20%** |
+| Greece         | 79.42 | 33.39 | ☀ Yes | 3.89  | 0.78  | 0.120 | 1.166  | 1.199  | **+3%**  |
+| Czech Republic | 54.75 | 36.60 | ⚡ No  | 13.16 | 2.63  | 0.313 | 3.947  | 3.131  | −21%     |
+| Austria        | 43.04 | 33.48 | ⚡ No  | 21.24 | 4.25  | 0.416 | 6.373  | 4.160  | −35%     |
+| Belgium        | 42.43 | 32.35 | ☀ Yes | 5.02  | 1.00  | 0.096 | 1.505  | 0.962  | −36%     |
+| France         | 36.16 | 31.64 | ⚡ No  | 43.29 | 8.66  | 0.740 | 12.986 | 7.405  | −43%     |
+| Spain          | 38.78 | 18.45 | ☀ Yes | 71.44 | 14.29 | 1.105 | 21.431 | 11.047 | −48%     |
+
+☀ = strong-solar hours produce enough cheap energy to fully charge the fleet for the evening (cycle 1) discharge. ⚡ = cycle 1 charging would partly draw from non-solar grid sources. (Cycle 2 always charges from overnight hours and is not affected by this check.)
 
 ---
 
@@ -268,33 +269,43 @@ Investment model: Tesla Powerwall 3 (13.5 kWh energy / 4.6 kW discharge). Fleet 
 
 ### Key Findings
 
-The solar merit-order effect is confirmed with statistical significance (p = 0.0000) in all eight countries analysed. Day-ahead prices are consistently and materially lower during strong solar hours. Negative Pearson correlations are confirmed in AT (r = −0.524) and BE (r = −0.522), with equivalent significance across the remaining six countries.
+The **solar merit-order effect** is confirmed with statistical significance (p = 0.0000) in all eight countries analysed (Modules 3 and 4). Day-ahead prices are consistently and materially lower during strong solar hours. Price spreads range from €20.72/MWh (France) to €55.74/MWh (Hungary) in the simple solar-vs-non-solar comparison.
 
-Price spreads range from €20.72/MWh (FR) to €55.74/MWh (HU). Countries with the highest solar share — HU (35.9%), BE (31.3%), BG (28.8%) — also exhibit the strongest merit-order suppression, confirming that solar penetration directly drives the arbitrage opportunity.
+The **investment case at utility-scale storage costs**, however, is materially more demanding. Only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles:
 
-### Investment Case
+- **Hungary (+21%)** and **Bulgaria (+20%)** — wide cycle-1 spreads (~€89/MWh), strong cycle-2 spreads (~€45/MWh), modest fleet sizes, and full solar charge feasibility.
+- **Greece (+3%)** — wide cycle-1 spread (€79/MWh) but a narrower cycle-2 spread (€33/MWh). At break-even, sensitive to assumptions.
 
-The Simple ROI metric equals 10-year gross margin divided by total investment — the total undiscounted return over the full 10-year horizon, not an annualised figure. A 19% ROI means €19 returned per €100 invested over 10 years. The model returns positive results across all nine countries (8%–19%). Bulgaria and Hungary are the most attractive markets, combining the widest price spreads with relatively modest fleet sizes and investment levels. Greece also offers above-average returns. The combined 10-year gross margin across all nine countries exceeds €1.99 billion against a total investment of approximately €21.65 billion.
+The remaining five markets are unprofitable at the assumed cost basis: Czechia (−21%), Austria (−35%), Belgium (−36%), France (−43%), and Spain (−48%).
 
-The distributed deployment model — large numbers of household Powerwall units rather than centralised grid-scale storage — provides a dual benefit: capturing solar arbitrage revenue while reducing peak load on transmission and distribution networks, potentially deferring costly grid capacity extensions.
+### The Scale Paradox
+
+The unprofitable markets are also the largest investments. Spain (€21.4B) and France (€13.0B) together would require €34.4B in capital for a combined loss of approximately €17B over 10 years. The profitable markets — Hungary, Bulgaria, Greece — require only €4.5B combined to generate ~€0.5B in net 10-year profit.
+
+This is not a result of weak fundamentals in the large markets. Rather, it reflects market saturation (Spain's already-suppressed daytime trough), nuclear baseload smoothing (France's compressed evening peak), and limits on solar charge supply at scale (France, Austria, Czechia cannot physically charge a 50%-target fleet from solar alone).
+
+Notably, **investment size does not predict profitability**. Bulgaria (€0.8B) and Spain (€21.4B) differ by 27× in capital, but Bulgaria is the most profitable and Spain the least. Belgium and Bulgaria require similar capital (€1.5B vs €0.8B), yet one loses 36% and the other gains 20%. The determinant is spread, not scale.
 
 ### Priority Markets
 
-- **Bulgaria: 19% ROI** — €93.76/MWh spread, €61.6M 10-year margin — strongest case per unit.
-- **Hungary: 18% ROI** — €89.40/MWh spread, €189.0M 10-year margin — largest absolute return among top performers.
-- **Greece: 17% ROI** — €83.77/MWh spread — strong solar infrastructure (27.8% share) supports continued growth.
+- **Hungary** — €89.40/MWh cycle-1 spread, €0.31B annual margin, €2.56B investment. Strongest absolute net return.
+- **Bulgaria** — €88.61/MWh cycle-1 spread, €0.10B annual margin, €0.79B investment. Best capital efficiency in the dataset.
+- **Greece** — €79.42/MWh cycle-1 spread, €0.12B annual margin, €1.17B investment. Marginally profitable; sensitive to spread assumptions.
 
 ### Limitations & Outlook
 
-- Analysis based on 2024 ENTSO-E data; growing solar penetration will likely widen price spreads and improve ROI over time.
-- Battery degradation modelled linearly (100%→70%); real-world performance varies with cycling patterns and temperature.
-- The 20% fleet-sizing assumption and €1,000 gateway cost are fixed; sensitivity analysis on these parameters is recommended.
-- Regulatory factors — grid tariffs, feed-in rules, aggregation frameworks — are not modelled and may significantly affect actual returns.
+- **Static spreads.** The model assumes 2024 day-ahead spreads persist for 10 years. Deploying national-scale storage would compress those spreads (exactly the purpose of the deployment), so the model overstates achievable returns. A dynamic price-response model would lower all multiples.
+- **Single revenue stream.** Day-ahead arbitrage only; no capacity market, no frequency response, no ancillary services. Real grid batteries typically earn 30–60% of revenue from these other streams. Adding them would push all marginal cases (Greece, Czechia) into profitability.
+- **No round-trip efficiency loss.** A 10–15% loss is typical for lithium battery storage and would reduce margins proportionally. Excluded here for simplicity.
+- **No operating costs.** O&M, insurance, grid fees, and end-of-life provisions are not modelled.
+- **Cycle lifetime.** Two cycles per day implies ~5,000–7,000 cycles over 10 years — within mainstream Li-ion ratings but optimistic for cheaper chemistries. Lifetime sensitivity (8–15 years) is recommended.
+- **Solar feasibility check.** The check uses the average solar volume in strong-solar hours from April–October. Day-to-day variation is not modelled; cloudy summer days could shift cycle 1 to grid-charging on those days.
+- **Cost basis.** €300/kWh installed reflects 2024 utility-scale system prices for 4-hour-duration projects. Costs are falling 5–10% per year, so a 2030 build would land closer to €200/kWh — at which point Spain and Belgium clear break-even.
 
 ---
 
-**Overall, the pipeline provides a robust, data-driven foundation for investment decisions in distributed battery storage across EU solar markets, combining statistical rigour (merit-order hypothesis testing, p = 0.0000 across all countries) with practical financial modelling (10-year Powerwall fleet ROI of 8%–19%). Bulgaria, Hungary, and Greece emerge as the priority markets for near-term deployment.**
+**Overall, the pipeline confirms the merit-order hypothesis with statistical rigour (p = 0.0000 across all eight countries) but reveals a sharper investment story than headline spreads suggest. At utility-scale storage costs and two daily cycles, Hungary, Bulgaria, and Greece are the only markets where day-ahead arbitrage alone justifies the capital required. The unprofitable markets are not unattractive in absolute terms — their spreads are real and exploitable — but their scale demands either lower cost bases (€200/kWh) or additional revenue stacks (capacity, ancillary services) to clear ROI.**
 
 ---
 
-*Data sources: Eurostat Installed Capacity · ENTSO-E Transparency Platform API · Tesla Powerwall 3 specifications (13.5 kWh / 4.6 kW / €7,200)*
+*Data sources: Eurostat `nrg_inf_epc` (Installed Capacity) · ENTSO-E Transparency Platform API (day-ahead prices, actual generation) · Utility-scale Li-ion storage cost reference €300/kWh installed (2024).*
