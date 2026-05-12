@@ -294,7 +294,7 @@ The remaining five markets are unprofitable at the assumed cost basis: Czechia (
 
 The unprofitable markets are also the largest investments. Spain (€21.4B) and France (€13.0B) together would require €34.4B in capital for a combined loss of approximately €17B over 10 years. The profitable markets — Hungary, Bulgaria, Greece — require only €4.5B combined to generate ~€0.5B in net 10-year profit.
 
-This is not a result of weak fundamentals in the large markets. Rather, it reflects market saturation (Spain's already-suppressed daytime trough), nuclear baseload smoothing (France's compressed evening peak), and limits on solar charge supply at scale (France, Austria, Czechia cannot physically charge a 50%-target fleet from solar alone).
+This is not a result of weak fundamentals in the large markets. Rather, it reflects market saturation (Spain's already-suppressed daytime trough), nuclear baseload flattening the evening peak (France's compressed evening peak), and limits on solar charge supply at scale (France, Austria, Czechia cannot physically charge a 50%-target fleet from solar alone).
 
 Notably, **investment size does not predict profitability**. Bulgaria (€0.8B) and Spain (€21.4B) differ by 27× in capital, but Bulgaria is the most profitable and Spain the least. Belgium and Bulgaria require similar capital (€1.5B vs €0.8B), yet one loses 36% and the other gains 20%. The determinant is spread, not scale.
 
