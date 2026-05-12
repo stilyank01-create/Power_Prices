@@ -12,9 +12,11 @@ The goal of the project is to test whether solar production systematically depre
 
 The analysis maps installed capacity across technologies and countries using Eurostat data (Module 1). From Module 2 onwards, the pipeline switches exclusively to ENTSO-E data, which provides more detailed and precise real-time energy statistics: solar penetration is quantified for eight EU countries (Module 2), day-ahead price dynamics during high-solar hours are characterised (Module 3), the solar merit-order effect is formally tested (Module 4), and a 10-year ROI for two-cycle arbitrage at utility-scale storage costs is quantified (Module 5).
 
+**Note on the merit-order effect.** Electricity prices are set hourly by the most expensive generator needed to meet demand. Generators are dispatched in ascending cost order (the "merit order") — first the ones with near-zero marginal cost (solar, wind, hydro, nuclear), then cheaper thermal plants, and finally expensive peakers. When abundant solar floods the grid at midday, expensive generators are no longer needed to clear the market, and the price drops to the cost of whatever cheaper unit becomes the marginal one. This is the **merit-order effect** — the empirical regularity that more renewables in the supply mix push wholesale prices down during the hours those renewables produce. Battery arbitrage exploits this by charging when the merit order is dominated by cheap generators (midday solar) and discharging when expensive peakers set the price (evening peak).
+
 Power generation volumes and prices are derived from ENTSO-E day-ahead 15-minute interval data, resulting in datasets of up to 8,760 × 4 = 35,040 observations per country per year. This granularity is essential for accurately characterising intraday price dynamics and identifying exploitable arbitrage windows.
 
-The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed across all eight countries analysed (Modules 3 and 4). A Pearson correlation between solar generation and day-ahead price, computed over April–October 2024 when solar has a meaningful effect, returns a statistically significant negative coefficient in every country (p = 0.0000). However, the **investment case is more nuanced**: at honest cost and ROI accounting over a full operating year, only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles.
+The core hypothesis — that abundant midday solar generation systematically depresses day-ahead electricity prices, creating an exploitable price spread — is confirmed across all eight countries analysed (Modules 3 and 4). Two complementary statistical tests — Welch's one-sided t-test of group means (strong-solar vs. rest hours) and a Pearson correlation between solar generation and day-ahead price — both reject the null hypothesis with overwhelming significance (p ≈ 0) in every country, using hourly observations over April–October 2024. The variance structure separates the countries into three clusters — spiky-peak (BG, GR, HU), symmetric (CZ, FR, ES), and inverted (AT, BE) — which predicts the investment outcome more reliably than headline spreads. However, the investment case is more nuanced: at honest cost and ROI accounting over a full operating year, only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles — and they are exactly the spiky-peak cluster.
 
 ---
 
@@ -23,7 +25,7 @@ The core hypothesis — that abundant midday solar generation systematically dep
 ### Module 1 — Installed Capacity per Technology per Country (Eurostat)
 `01_Eurostat_Installed_Capacity_Per_Technology_Per_Country.ipynb`
 
-Data source: Eurostat `nrg_inf_epc` dataset (installed electricity generation capacity by SIEC). The notebook queries each country once per year, decodes the JSON-stat response dynamically (reading `id` and `size` from each response so the parser stays correct under any query shape), and filters to leaf SIEC codes only — `TOTAL`, `RA100`, `RA300`, `RA420` are excluded to prevent double-counting parent + children. `CF` is kept as a single "Combustible fuels" line since `nrg_inf_epc` does not break coal/gas/oil out separately. For solar PV, `RA420AC` (alternating current) is preferred and falls back to `RA420DC` (direct-current nameplate) when AC is not reported.
+Data source: Eurostat `nrg_inf_epc` dataset (installed electricity generation capacity by SIEC). The notebook queries each country once per year, decodes the JSON-stat response dynamically (reading `id` and `size` from each response so the parser stays correct under any query shape), and filters to leaf SIEC codes only — `TOTAL`, `RA100`, `RA300`, and `RA420` are excluded to prevent double-counting of parents and their children. `CF` is kept as a single "Combustible fuels" line, since `nrg_inf_epc` does not break coal/gas/oil out separately. For solar PV, `RA420AC` (alternating current) is preferred, with `RA420DC` (direct-current nameplate) used as a fallback when AC is not reported.
 
 - Technologies retained: combustible fuels (coal + gas + oil aggregated), nuclear, pure hydro, mixed hydro, pumped hydro, geothermal, wind onshore, wind offshore, solar PV, solar thermal, and tide/wave/ocean.
 - Aggregates are excluded; AC and DC solar PV are not double-counted.
@@ -196,7 +198,7 @@ Strong solar hours identified per country (08:00–18:00 for most; CZ 08–17, H
 - Largest spreads: HU €55.74/MWh, BG €51.61/MWh, GR €48.79/MWh — strongest arbitrage signal.
 - Smallest spreads: FR €20.72/MWh, ES €31.00/MWh, AT €27.96/MWh — still commercially relevant at scale.
 
-**▸ Output Data**
+**Output Data**
 
 | Country | Strong Solar Hrs | Strong Mean (€/MWh) | Strong Median (€/MWh) | Rest Mean (€/MWh) | Rest Median (€/MWh) | Spread (€/MWh) | N Strong | N Rest |
 |---------|-----------------|---------------------|-----------------------|-------------------|---------------------|----------------|----------|--------|
@@ -214,14 +216,22 @@ Strong solar hours identified per country (08:00–18:00 for most; CZ 08–17, H
 ### Module 4 — Hypothesis Test — Merit-Order Effect of Solar Generation
 `04_ENTSO-E_Solar_Strong_Hours_Negative_Price_Correlation.ipynb`
 
-Statistical test: one-sided mean comparison and Pearson correlation between solar generation (MW) and day-ahead price (EUR/MWh), computed on hourly observations over April–October 2024. A correlation threshold of |r| > 0.2 is applied — conventionally a "weak" effect in social-science contexts, but a meaningful signal in noisy energy-market time series, where price is driven by many independent factors (demand, weather, fuel prices, imports, scarcity). AT and BE show strong correlations of −0.524 and −0.522 respectively. All countries return p = 0.0000.
+Two complementary tests are applied to hourly observations over April–October 2024: (1) Welch's one-sided t-test of group means, comparing strong-solar hours against rest hours; and (2) Pearson correlation between solar generation (MW) and day-ahead price (EUR/MWh). Welch's t-test (rather than the pooled Student's t-test) is used as the default robust choice: it loses negligible power when variances are similar and is substantially more accurate when they differ, which avoids the bias introduced by pre-testing for variance equality.
 
-**What is the p-value?** The p-value measures the probability that the observed price difference between solar and non-solar hours occurred by random chance. A value of 0.0000 means this probability is vanishingly small (less than 0.01%), so the result is considered statistically conclusive.
+The empirical variance ratio (rest variance ÷ strong-solar variance) reveals **three distinct market structures**:
+
+- **Spiky-peak markets (BG, GR, HU)** — variance ratio 3.5–4.0. Evening rest hours are far more volatile than midday strong-solar hours. Insufficient grid flexibility allows sharp evening price spikes; solar reliably floors midday prices.
+- **Symmetric markets (CZ, FR, ES)** — variance ratio 0.89–0.97. Volatility is roughly balanced across the day. Nuclear baseload (France), massive solar (Spain), and mixed thermal (Czechia) smooth both ends.
+- **Inverted markets (AT, BE)** — variance ratio 0.59–0.60. Strong-solar hours are *more* volatile than the rest of the day. Hydro and CCGT flexibility absorb evening peaks; solar saturation occasionally pushes midday prices to extremes including negative values.
+
+A correlation threshold of |r| > 0.2 is also applied as a magnitude check — conventionally a "weak" effect in social-science contexts, but a meaningful signal in noisy energy-market time series, where price is driven by many independent factors (demand, weather, fuel prices, imports, scarcity). Both tests reject the null in every country with overwhelming significance (p ≈ 0). AT and BE show particularly strong Pearson correlations of −0.524 and −0.522 respectively.
+
+**What is the p-value?** The p-value measures the probability that the observed price difference between solar and non-solar hours occurred by random chance. A value reported as p ≈ 0 means this probability is vanishingly small (well below 0.0001), so the result is statistically conclusive.
 
 - The merit-order effect is confirmed in all eight countries: higher solar output consistently suppresses day-ahead prices.
-- Both complementary signals (mean price comparison and correlation threshold) are satisfied across the board.
+- Both complementary tests (Welch's t-test of means and Pearson correlation) agree across all countries.
 
-**▸ Output Data**
+**Output Data**
 
 | Country | Solar hours mean (EUR/MWh) | Other hours mean (EUR/MWh) | Price gap (EUR/MWh) | Correlation | p-value |
 |---------|---------------------------|---------------------------|---------------------|-------------|---------|
@@ -271,12 +281,12 @@ Fleet sizing is bounded by cycle 1 (the larger daily volume). Cycle 2 reuses the
 
 ### Key Findings
 
-The **solar merit-order effect** is confirmed with statistical significance (p = 0.0000) in all eight countries analysed (Modules 3 and 4). Day-ahead prices are consistently and materially lower during strong solar hours. Price spreads range from €20.72/MWh (France) to €55.74/MWh (Hungary) in the simple solar-vs-non-solar comparison.
+The solar merit-order effect is confirmed by two complementary statistical tests (Welch's one-sided t-test of group means and Pearson correlation), both rejecting the null hypothesis with overwhelming significance (p ≈ 0) in all eight countries analysed (Modules 3 and 4). Day-ahead prices are consistently and materially lower during strong solar hours. Price spreads range from €20.72/MWh (France) to €55.74/MWh (Hungary) in the simple solar-vs-non-solar comparison.
 
-The **investment case at utility-scale storage costs**, however, is materially more demanding. Only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles:
+The investment case at utility-scale storage costs, however, is materially more demanding. Only three of the eight national markets clear break-even over a 10-year horizon with two daily cycles:
 
-- **Hungary (+21%)** and **Bulgaria (+20%)** — wide cycle-1 spreads (~€89/MWh), strong cycle-2 spreads (~€45/MWh), modest fleet sizes, and full solar charge feasibility.
-- **Greece (+3%)** — wide cycle-1 spread (€79/MWh) but a narrower cycle-2 spread (€33/MWh). At break-even, sensitive to assumptions.
+- Hungary (+21%) and Bulgaria (+20%) — wide cycle-1 spreads (~€89/MWh), strong cycle-2 spreads (~€45/MWh), modest fleet sizes, and full solar charge feasibility.
+- Greece (+3%) — wide cycle-1 spread (€79/MWh) but a narrower cycle-2 spread (€33/MWh). Sits at break-even, and is sensitive to assumptions.
 
 The remaining five markets are unprofitable at the assumed cost basis: Czechia (−21%), Austria (−35%), Belgium (−36%), France (−43%), and Spain (−48%).
 
@@ -287,6 +297,20 @@ The unprofitable markets are also the largest investments. Spain (€21.4B) and 
 This is not a result of weak fundamentals in the large markets. Rather, it reflects market saturation (Spain's already-suppressed daytime trough), nuclear baseload smoothing (France's compressed evening peak), and limits on solar charge supply at scale (France, Austria, Czechia cannot physically charge a 50%-target fleet from solar alone).
 
 Notably, **investment size does not predict profitability**. Bulgaria (€0.8B) and Spain (€21.4B) differ by 27× in capital, but Bulgaria is the most profitable and Spain the least. Belgium and Bulgaria require similar capital (€1.5B vs €0.8B), yet one loses 36% and the other gains 20%. The determinant is spread, not scale.
+
+### Variance Structure as a Predictor
+
+The empirical variance check in Module 4 reveals three distinct market structures that map remarkably well onto the ROI results:
+
+| Cluster | Countries | Variance Ratio (rest/strong) | ROI Outcome |
+|---------|-----------|------------------------------|-------------|
+| **Spiky-peak** | Bulgaria, Greece, Hungary | 3.5–4.0 | All three profitable (+3% to +21%) |
+| **Symmetric** | Czechia, France, Spain | 0.89–0.97 | Unprofitable (−21% to −48%) |
+| **Inverted** | Austria, Belgium | 0.59–0.60 | Unprofitable (−35% to −36%) |
+
+The pattern is structural: **batteries pay back where the evening tail is volatile and unexploited**. In the spiky-peak cluster, grid flexibility is limited (less interconnection, more thermal baseload, fewer flexible peakers), so the evening peak spikes sharply and predictably — exactly the conditions that reward fast-discharging storage. In the symmetric cluster (FR with nuclear baseload, ES with saturated solar, CZ with mixed thermal), volatility is balanced and the evening tail has already been smoothed by other forms of flexibility, compressing the arbitrage opportunity. The inverted cluster (AT, BE) has the most counter-intuitive structure: hydro and CCGT absorb the evening cleanly, while solar saturation pushes midday prices to occasional extremes including negative values. Mean spreads are still positive but driven by midday lows rather than evening highs — a fundamentally different arbitrage geometry that doesn't map cleanly onto the model's assumption of evening-peak discharge.
+
+This variance characterization is a more robust ROI predictor than headline spread alone: a country's variance ratio is a structural feature of its market that doesn't get arbitraged away as quickly as the mean spread does.
 
 ### Priority Markets
 
@@ -306,7 +330,7 @@ Notably, **investment size does not predict profitability**. Bulgaria (€0.8B) 
 
 ---
 
-**Overall, the pipeline confirms the merit-order hypothesis with statistical rigour (p = 0.0000 across all eight countries) but reveals a sharper investment story than headline spreads suggest. At utility-scale storage costs and two daily cycles, Hungary, Bulgaria, and Greece are the only markets where day-ahead arbitrage alone justifies the capital required. The unprofitable markets are not unattractive in absolute terms — their spreads are real and exploitable — but their scale demands either lower cost bases (€200/kWh) or additional revenue stacks (capacity, ancillary services) to clear ROI.**
+**Overall, the pipeline confirms the merit-order hypothesis with statistical rigour — two complementary tests (Welch's t-test and Pearson correlation) both reject the null with overwhelming significance (p ≈ 0) across all eight countries — but reveals a sharper investment story than headline spreads suggest. At utility-scale storage costs and two daily cycles, Hungary, Bulgaria, and Greece are the only markets where day-ahead arbitrage alone justifies the capital required. The unprofitable markets are not unattractive in absolute terms — their spreads are real and exploitable — but their scale demands either lower cost bases (€200/kWh) or additional revenue stacks (capacity, ancillary services) to clear ROI.**
 
 ---
 
